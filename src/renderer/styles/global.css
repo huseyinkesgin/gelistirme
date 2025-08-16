@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom utility classes */
+@layer components {
+
+    /* Amber border utilities */
+    .border-amber {
+        @apply border-amber-500;
+    }
+
+    /* Focus states */
+    .focus-amber {
+        @apply focus:ring-2 focus:ring-amber-200 focus:outline-none;
+    }
+
+    /* Form input base styles with accessibility */
+    .form-input {
+        @apply border border-amber-500 rounded-md px-4 py-2 focus-amber;
+    }
+
+    /* Interactive elements hover states */
+    .hover-amber {
+        @apply hover:bg-amber-50 transition-colors duration-200;
+    }
+
+    /* Accessible button base */
+    .btn {
+        @apply px-4 py-2 rounded-md focus-amber;
+    }
+
+    .btn-primary {
+        @apply btn bg-amber-500 text-white hover:bg-amber-600;
+    }
+
+    .btn-secondary {
+        @apply btn border-2 border-amber-500 text-amber-700 hover:bg-amber-50;
+    }
+}
+
+/* WCAG 2.1 specific styles */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+:focus-visible {
+    @apply ring-2 ring-amber-200 ring-offset-2 outline-none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --tw-ring-color: black;
+    }
+}
