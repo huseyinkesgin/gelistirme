@@ -2,38 +2,31 @@
   <div id="app" class="h-screen flex bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <!-- Loading overlay -->
     <LoadingOverlay v-if="appStore.isLoading" />
-    
+
     <!-- Auth layout -->
     <template v-if="!authStore.isAuthenticated">
       <router-view />
     </template>
-    
+
     <!-- Main app layout -->
     <template v-else>
       <!-- Sidebar -->
-      <Sidebar 
-        v-if="showSidebar && !appStore.sidebarCollapsed" 
-        class="flex-shrink-0 transition-all duration-300"
-        :class="{ 'w-16': appStore.sidebarCollapsed, 'w-64': !appStore.sidebarCollapsed }"
-      />
-      
+      <Sidebar v-if="showSidebar && !appStore.sidebarCollapsed" class="flex-shrink-0 transition-all duration-300"
+        :class="{ 'w-16': appStore.sidebarCollapsed, 'w-64': !appStore.sidebarCollapsed }" />
+
       <!-- Ana içerik alanı -->
       <div class="flex-1 flex flex-col overflow-hidden">
         <!-- Header -->
         <Header class="flex-shrink-0" />
-        
+
         <!-- Breadcrumb -->
         <Breadcrumb v-if="currentRoute.meta?.breadcrumb" class="flex-shrink-0" />
-        
+
         <!-- Ana içerik -->
         <main class="flex-1 overflow-auto">
           <div class="p-6">
             <router-view v-slot="{ Component, route }">
-              <transition
-                :name="route.meta?.transition || 'fade'"
-                mode="out-in"
-                appear
-              >
+              <transition :name="route.meta?.transition || 'fade'" mode="out-in" appear>
                 <keep-alive v-if="route.meta?.keepAlive">
                   <component :is="Component" :key="route.path" />
                 </keep-alive>
@@ -44,11 +37,11 @@
         </main>
       </div>
     </template>
-    
+
     <!-- Global components -->
     <NotificationContainer />
     <ModalContainer />
-    
+
     <!-- Development tools -->
     <DevTools v-if="settingsStore.isDebugMode && isDev" />
   </div>
@@ -56,7 +49,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAppStore, useAuthStore, useThemeStore, useSettingsStore, useNotificationStore } from './stores';
 
 // Components
@@ -76,6 +69,7 @@ const settingsStore = useSettingsStore();
 const notificationStore = useNotificationStore();
 
 // Router
+const router = useRouter();
 const currentRoute = useRoute();
 
 // State
@@ -87,24 +81,24 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 // Electron API event listeners
 const setupElectronListeners = () => {
-  if (window.electronAPI) {
+  if (window.electronAPI && window.electronAPI.on) {
     // Navigation events
-    window.electronAPI.on('navigate-to', (route: string) => {
+    window.electronAPI.on('navigate-to', (event: any, route: string) => {
       router.push(route);
     });
-    
+
     // Window state events
-    window.electronAPI.on('save-window-state', (state: any) => {
+    window.electronAPI.on('save-window-state', (event: any, state: any) => {
       localStorage.setItem('window-state', JSON.stringify(state));
     });
-    
-    window.electronAPI.on('get-window-state', () => {
+
+    window.electronAPI.on('get-window-state', (event: any) => {
       const saved = localStorage.getItem('window-state');
       if (saved) {
         try {
           const state = JSON.parse(saved);
           // Window state'i main process'e gönder
-          // Bu işlem main process tarafından handle edilecek
+          window.electronAPI.system.log('info', 'Window state loaded', state);
         } catch (error) {
           console.error('Window state parse error:', error);
         }
@@ -116,9 +110,9 @@ const setupElectronListeners = () => {
 // Cleanup electron listeners
 const cleanupElectronListeners = () => {
   if (window.electronAPI) {
-    window.electronAPI.off('navigate-to', () => {});
-    window.electronAPI.off('save-window-state', () => {});
-    window.electronAPI.off('get-window-state', () => {});
+    window.electronAPI.off('navigate-to', () => { });
+    window.electronAPI.off('save-window-state', () => { });
+    window.electronAPI.off('get-window-state', () => { });
   }
 };
 
@@ -128,7 +122,7 @@ let autoSaveInterval: NodeJS.Timeout | null = null;
 const setupAutoSave = () => {
   if (settingsStore.autoSaveEnabled && authStore.isAuthenticated) {
     const interval = settingsStore.settings.autoSaveInterval * 60 * 1000; // Convert to milliseconds
-    
+
     autoSaveInterval = setInterval(() => {
       // Auto-save logic burada implement edilecek
       appStore.logMessage('debug', 'Auto-save triggered');
@@ -149,7 +143,7 @@ let sessionTimeoutId: NodeJS.Timeout | null = null;
 const setupSessionTimeout = () => {
   if (authStore.isAuthenticated && settingsStore.settings.sessionTimeout > 0) {
     const timeout = settingsStore.settings.sessionTimeout * 60 * 1000; // Convert to milliseconds
-    
+
     sessionTimeoutId = setTimeout(() => {
       notificationStore.warning(
         'Oturum Zaman Aşımı',
@@ -178,15 +172,15 @@ const cleanupSessionTimeout = () => {
 // User activity tracking
 const trackUserActivity = () => {
   const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-  
+
   const resetTimeout = () => {
     resetSessionTimeout();
   };
-  
+
   events.forEach(event => {
     document.addEventListener(event, resetTimeout, true);
   });
-  
+
   // Cleanup function
   return () => {
     events.forEach(event => {
@@ -202,7 +196,7 @@ const handleGlobalError = (error: ErrorEvent) => {
     lineno: error.lineno,
     colno: error.colno
   });
-  
+
   notificationStore.systemError(error.error, 'Beklenmeyen bir hata oluştu');
 };
 
@@ -220,23 +214,23 @@ onMounted(async () => {
       settingsStore.loadSettings(),
       themeStore.initialize()
     ]);
-    
+
     // Setup electron listeners
     setupElectronListeners();
-    
+
     // Setup user activity tracking
     const cleanupActivity = trackUserActivity();
-    
+
     // Setup auto-save
     setupAutoSave();
-    
+
     // Setup session timeout
     setupSessionTimeout();
-    
+
     // Global error handlers
     window.addEventListener('error', handleGlobalError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
-    
+
     // Welcome notification for first-time users
     if (settingsStore.settings.showWelcomeScreen && authStore.isAuthenticated) {
       notificationStore.info(
@@ -245,9 +239,9 @@ onMounted(async () => {
         { duration: 8000 }
       );
     }
-    
+
     appStore.logMessage('info', 'Application initialized successfully');
-    
+
     // Cleanup function'ı onUnmounted'a kaydet
     onUnmounted(() => {
       cleanupActivity();
@@ -264,7 +258,7 @@ onUnmounted(() => {
   cleanupElectronListeners();
   cleanupAutoSave();
   cleanupSessionTimeout();
-  
+
   // Remove global error handlers
   window.removeEventListener('error', handleGlobalError);
   window.removeEventListener('unhandledrejection', handleUnhandledRejection);

@@ -1,6 +1,12 @@
 import BaseModel from './BaseModel';
 
 export default class Rol extends BaseModel {
+  rollenebilir_id!: string;
+  rollenebilir_type!: string;
+  ad!: string;
+  aciklama?: string;
+  yetkiler?: Record<string, any>;
+
   static get tableName(): string {
     return 'roller';
   }
@@ -21,7 +27,8 @@ export default class Rol extends BaseModel {
   }
 
   // Polimorfik ilişki için bir metod
-  rollenebilir() {
-    return this.$relatedQuery(this.rollenebilir_type, this.rollenebilir_id);
+  async rollenebilir() {
+    const ModelClass = require(`./${this.rollenebilir_type}`).default;
+    return await ModelClass.query().findById(this.rollenebilir_id);
   }
 }

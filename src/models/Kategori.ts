@@ -1,6 +1,13 @@
 import BaseModel from './BaseModel';
 
 export default class Kategori extends BaseModel {
+  kategorilenebilir_id?: string;
+  kategorilenebilir_type!: string;
+  ad!: string;
+  aciklama?: string;
+  ust_kategori_id?: string;
+  seviye: number = 1;
+
   static get tableName(): string {
     return 'kategoriler';
   }
@@ -43,8 +50,9 @@ export default class Kategori extends BaseModel {
   }
 
   // Polimorfik ilişki için bir metod
-  kategorilenebilir() {
+  async kategorilenebilir() {
     if (!this.kategorilenebilir_type || !this.kategorilenebilir_id) return null;
-    return this.$relatedQuery(this.kategorilenebilir_type, this.kategorilenebilir_id);
+    const ModelClass = require(`./${this.kategorilenebilir_type}`).default;
+    return await ModelClass.query().findById(this.kategorilenebilir_id);
   }
 }

@@ -35,18 +35,18 @@ app.config.globalProperties.$filters = {
       currency
     }).format(value);
   },
-  
+
   date: (value: string | Date, format = 'short') => {
     const date = typeof value === 'string' ? new Date(value) : value;
     return new Intl.DateTimeFormat('tr-TR', {
       dateStyle: format as any
     }).format(date);
   },
-  
+
   number: (value: number) => {
     return new Intl.NumberFormat('tr-TR').format(value);
   },
-  
+
   truncate: (text: string, length = 50) => {
     if (text.length <= length) return text;
     return text.substring(0, length) + '...';
@@ -56,18 +56,30 @@ app.config.globalProperties.$filters = {
 // Global error handler
 app.config.errorHandler = (err, instance, info) => {
   console.error('Vue Error:', err, info);
-  
-  // Electron'a hata bildir
-  if (window.electronAPI) {
-    window.electronAPI.system.reportError({
-      type: 'vue-error',
-      message: err instanceof Error ? err.message : String(err),
-      stack: err instanceof Error ? err.stack : undefined,
-      info,
-      timestamp: new Date().toISOString(),
-      component: instance?.$options.name || 'Unknown',
-      route: router.currentRoute.value.path
-    });
+
+  // Güvenli şekilde Electron'a hata bildir (preload yüklenmemiş olabilir)
+  try {
+    if (
+      typeof window !== 'undefined' &&
+      (window as any).electronAPI &&
+      (window as any).electronAPI.system &&
+      typeof (window as any).electronAPI.system.reportError === 'function'
+    ) {
+      (window as any).electronAPI.system.reportError({
+        type: 'vue-error',
+        message: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+        info,
+        timestamp: new Date().toISOString(),
+        component: instance?.$options?.name || 'Unknown',
+        route: router?.currentRoute?.value?.path || null
+      });
+    } else {
+      // Fallback: konsola yaz
+      console.warn('Electron API not available, falling back to console for error reporting.');
+    }
+  } catch (reportErr) {
+    console.error('Error while reporting to Electron API:', reportErr);
   }
 };
 
@@ -86,8 +98,8 @@ if (process.env.NODE_ENV === 'development') {
 // Development tools
 if (process.env.NODE_ENV === 'development') {
   // Vue DevTools
-  app.config.devtools = true;
-  
+  (app.config as any).devtools = true;
+
   // Performance monitoring
   const observer = new PerformanceObserver((list) => {
     for (const entry of list.getEntries()) {
@@ -96,7 +108,7 @@ if (process.env.NODE_ENV === 'development') {
       }
     }
   });
-  
+
   observer.observe({ entryTypes: ['measure'] });
 }
 

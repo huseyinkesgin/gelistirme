@@ -34,7 +34,7 @@ export default class Kullanici extends BaseModel {
         }
       },
       roller: {
-        relation: Model.MorphManyRelation,
+        relation: Model.HasManyRelation,
         modelClass: Rol,
         join: {
           from: 'kullanicilar.id',

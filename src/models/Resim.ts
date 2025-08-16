@@ -1,6 +1,19 @@
 import BaseModel from './BaseModel';
 
 export default class Resim extends BaseModel {
+  resimlenebilir_id!: string;
+  resimlenebilir_type!: string;
+  ad?: string;
+  aciklama?: string;
+  dosya_adi!: string;
+  dosya_yolu!: string;
+  mime_type?: string;
+  dosya_boyutu?: number;
+  genislik?: number;
+  yukseklik?: number;
+  ana_gorsel: boolean = false;
+  profil_resmi: boolean = false;
+
   static get tableName(): string {
     return 'resimler';
   }
@@ -28,7 +41,8 @@ export default class Resim extends BaseModel {
   }
 
   // Polimorfik ilişki için bir metod
-  resimlenebilir() {
-    return this.$relatedQuery(this.resimlenebilir_type, this.resimlenebilir_id);
+  async resimlenebilir() {
+    const ModelClass = require(`./${this.resimlenebilir_type}`).default;
+    return await ModelClass.query().findById(this.resimlenebilir_id);
   }
 }

@@ -2,6 +2,13 @@ import BaseModel from './BaseModel';
 import { TelefonTipiEnum } from '../enums/TelefonTipiEnum';
 
 export default class Telefon extends BaseModel {
+  telefonlanabilir_id!: string;
+  telefonlanabilir_type!: string;
+  numara!: string;
+  tip!: string;
+  varsayilan_mi?: boolean;
+  aciklama?: string;
+
   static get tableName(): string {
     return 'telefonlar';
   }
@@ -23,7 +30,8 @@ export default class Telefon extends BaseModel {
   }
 
   // Polimorfik ilişki için bir metod
-  telefonlanabilir() {
-    return this.$relatedQuery(this.telefonlanabilir_type, this.telefonlanabilir_id);
+  async telefonlanabilir() {
+    const ModelClass = require(`./${this.telefonlanabilir_type}`).default;
+    return await ModelClass.query().findById(this.telefonlanabilir_id);
   }
 }

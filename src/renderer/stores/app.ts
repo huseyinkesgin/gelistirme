@@ -46,9 +46,22 @@ export const useAppStore = defineStore('app', () => {
 
   const fetchAppInfo = async () => {
     try {
-      if (window.electronAPI) {
-        const info = await window.electronAPI.app.getInfo();
+      if (
+        typeof window !== 'undefined' &&
+        (window as any).electronAPI &&
+        (window as any).electronAPI.app &&
+        typeof (window as any).electronAPI.app.getInfo === 'function'
+      ) {
+        const info = await (window as any).electronAPI.app.getInfo();
         appInfo.value = info;
+      } else {
+        appInfo.value = {
+          version: 'dev',
+          electron: process?.versions?.electron || 'unknown',
+          node: process?.versions?.node || 'unknown',
+          platform: process?.platform || 'browser',
+          arch: process?.arch || 'x64'
+        };
       }
     } catch (error) {
       console.error('App info fetch error:', error);
@@ -57,9 +70,19 @@ export const useAppStore = defineStore('app', () => {
 
   const checkDatabaseStatus = async () => {
     try {
-      if (window.electronAPI) {
-        const status = await window.electronAPI.database.getStatus();
+      if (
+        typeof window !== 'undefined' &&
+        (window as any).electronAPI &&
+        (window as any).electronAPI.database &&
+        typeof (window as any).electronAPI.database.getStatus === 'function'
+      ) {
+        const status = await (window as any).electronAPI.database.getStatus();
         databaseStatus.value = status;
+      } else {
+        databaseStatus.value = {
+          connected: false,
+          message: 'Electron database API not available'
+        };
       }
     } catch (error) {
       console.error('Database status check error:', error);
@@ -113,17 +136,29 @@ export const useAppStore = defineStore('app', () => {
   };
 
   const reportError = (error: any, context?: any) => {
-    if (window.electronAPI) {
-      window.electronAPI.system.reportError({
-        error: {
-          message: error.message || String(error),
-          stack: error.stack,
-          name: error.name
-        },
-        context,
-        timestamp: new Date().toISOString(),
-        url: window.location.href
-      });
+    try {
+      if (
+        typeof window !== 'undefined' &&
+        (window as any).electronAPI &&
+        (window as any).electronAPI.system &&
+        typeof (window as any).electronAPI.system.reportError === 'function'
+      ) {
+        (window as any).electronAPI.system.reportError({
+          error: {
+            message: error?.message || String(error),
+            stack: error?.stack,
+            name: error?.name
+          },
+          context,
+          timestamp: new Date().toISOString(),
+          url: typeof window !== 'undefined' ? window.location.href : null
+        });
+      } else {
+        console.warn('Electron API not available - reportError fallback to console.');
+        console.error(error, context);
+      }
+    } catch (e) {
+      console.error('Failed to report error via electronAPI:', e, 'Original error:', error, context);
     }
   };
 
@@ -148,12 +183,12 @@ export const useAppStore = defineStore('app', () => {
     databaseStatus,
     sidebarCollapsed,
     currentRoute,
-    
+
     // Getters
     isLoading,
     isConnected,
     appVersion,
-    
+
     // Actions
     setLoading,
     toggleSidebar,

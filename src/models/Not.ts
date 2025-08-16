@@ -2,6 +2,13 @@ import BaseModel from './BaseModel';
 import { NotTipiEnum } from '../enums/NotTipiEnum';
 
 export default class Not extends BaseModel {
+  notlanabilir_id!: string;
+  notlanabilir_type!: string;
+  baslik?: string;
+  icerik!: string;
+  tip: string = NotTipiEnum.GENEL;
+  renk?: string;
+
   static get tableName(): string {
     return 'notlar';
   }
@@ -23,7 +30,8 @@ export default class Not extends BaseModel {
   }
 
   // Polimorfik ilişki için bir metod
-  notlanabilir() {
-    return this.$relatedQuery(this.notlanabilir_type, this.notlanabilir_id);
+  async notlanabilir() {
+    const ModelClass = require(`./${this.notlanabilir_type}`).default;
+    return await ModelClass.query().findById(this.notlanabilir_id);
   }
 }

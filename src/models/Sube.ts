@@ -22,7 +22,7 @@ export default class Sube extends BaseModel {
   static get relationMappings() {
     return {
       adres: {
-        relation: BaseModel.MorphOneRelation,
+        relation: BaseModel.HasOneRelation,
         modelClass: Adres,
         join: {
           from: 'subeler.id',

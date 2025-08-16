@@ -7,6 +7,8 @@ import Not from './Not';
 import Kategori from './Kategori';
 
 export default class Mulk extends BaseModel {
+  portfoy_no?: string;
+
   static get tableName(): string {
     return 'mulkler';
   }
@@ -58,7 +60,7 @@ export default class Mulk extends BaseModel {
         }
       },
       kategoriler: {
-        relation: BaseModel.MorphManyRelation,
+        relation: BaseModel.HasManyRelation,
         modelClass: Kategori,
         join: {
           from: 'mulkler.id',
@@ -67,7 +69,7 @@ export default class Mulk extends BaseModel {
         filter: { kategorilenebilir_type: 'Mulk' }
       },
       adres: {
-        relation: BaseModel.MorphOneRelation,
+        relation: BaseModel.HasOneRelation,
         modelClass: Adres,
         join: {
           from: 'mulkler.id',
@@ -76,7 +78,7 @@ export default class Mulk extends BaseModel {
         filter: { adreslenebilir_type: 'Mulk' }
       },
       resimler: {
-        relation: BaseModel.MorphManyRelation,
+        relation: BaseModel.HasManyRelation,
         modelClass: Resim,
         join: {
           from: 'mulkler.id',
@@ -85,7 +87,7 @@ export default class Mulk extends BaseModel {
         filter: { resimlenebilir_type: 'Mulk' }
       },
       dokumanlar: {
-        relation: BaseModel.MorphManyRelation,
+        relation: BaseModel.HasManyRelation,
         modelClass: Dokuman,
         join: {
           from: 'mulkler.id',
@@ -94,7 +96,7 @@ export default class Mulk extends BaseModel {
         filter: { dokumanlanabilir_type: 'Mulk' }
       },
       notlar: {
-        relation: BaseModel.MorphManyRelation,
+        relation: BaseModel.HasManyRelation,
         modelClass: Not,
         join: {
           from: 'mulkler.id',
@@ -102,6 +104,6 @@ export default class Mulk extends BaseModel {
         },
         filter: { notlanabilir_type: 'Mulk' }
       }
-    };
+    }
   }
 }

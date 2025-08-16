@@ -13,6 +13,17 @@ export enum IlanDurumuEnum {
 }
 
 export default class Ilan extends BaseModel {
+  mulk_id!: string;
+  olusturan_kullanici_id!: string;
+  ilan_no?: string;
+  baslik!: string;
+  aciklama?: string;
+  durum: string = IlanDurumuEnum.BEKLEMEDE;
+  yayin_tarihi?: Date;
+  bitis_tarihi?: Date;
+  seo_baslik?: string;
+  seo_aciklama?: string;
+
   static get tableName(): string {
     return 'ilanlar';
   }

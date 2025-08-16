@@ -6,6 +6,19 @@ import Mahalle from './Mahalle';
 import { AdresTipiEnum } from '../enums/AdresTipiEnum';
 
 export default class Adres extends BaseModel {
+  adreslenebilir_id!: string;
+  adreslenebilir_type!: string;
+  adres_tipi!: string;
+  varsayilan_mi?: boolean;
+  baslik?: string;
+  adres_satiri_1!: string;
+  adres_satiri_2?: string;
+  mahalle_id?: string;
+  semt_id?: string;
+  ilce_id?: string;
+  sehir_id?: string;
+  posta_kodu?: string;
+
   static get tableName(): string {
     return 'adresler';
   }
@@ -70,7 +83,8 @@ export default class Adres extends BaseModel {
   }
 
   // Polimorfik ilişki için bir metod
-  adreslenebilir() {
-    return this.$relatedQuery(this.adreslenebilir_type, this.adreslenebilir_id);
+  async adreslenebilir() {
+    const ModelClass = require(`./${this.adreslenebilir_type}`).default;
+    return await ModelClass.query().findById(this.adreslenebilir_id);
   }
 }

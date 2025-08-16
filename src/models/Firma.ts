@@ -5,6 +5,14 @@ import Telefon from './Telefon';
 import { FirmaTipiEnum } from '../enums/FirmaTipiEnum';
 
 export default class Firma extends BaseModel {
+  firmalanabilir_id!: string;
+  firmalanabilir_type!: string;
+  ad!: string;
+  vergi_no?: string;
+  vergi_dairesi?: string;
+  tip?: string;
+  sektor?: string;
+
   static get tableName(): string {
     return 'firmalar';
   }
@@ -29,7 +37,7 @@ export default class Firma extends BaseModel {
   static get relationMappings() {
     return {
       adresler: {
-        relation: Model.MorphManyRelation,
+        relation: Model.HasManyRelation,
         modelClass: Adres,
         join: {
           from: 'firmalar.id',
@@ -38,7 +46,7 @@ export default class Firma extends BaseModel {
         filter: { adreslenebilir_type: 'Firma' }
       },
       telefonlar: {
-        relation: Model.MorphManyRelation,
+        relation: Model.HasManyRelation,
         modelClass: Telefon,
         join: {
           from: 'firmalar.id',
@@ -47,5 +55,11 @@ export default class Firma extends BaseModel {
         filter: { telefonlanabilir_type: 'Firma' }
       }
     };
+  }
+
+  // Polimorfik ilişki için bir metod
+  async firmalanabilir() {
+    const ModelClass = require(`./${this.firmalanabilir_type}`).default;
+    return await ModelClass.query().findById(this.firmalanabilir_id);
   }
 }

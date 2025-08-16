@@ -1,6 +1,16 @@
 import BaseModel from './BaseModel';
 
 export default class Dokuman extends BaseModel {
+  dokumanlanabilir_id!: string;
+  dokumanlanabilir_type!: string;
+  ad?: string;
+  aciklama?: string;
+  dosya_adi!: string;
+  dosya_yolu!: string;
+  mime_type?: string;
+  dosya_boyutu?: number;
+  gizli_mi: boolean = false;
+
   static get tableName(): string {
     return 'dokumanlar';
   }
@@ -25,7 +35,8 @@ export default class Dokuman extends BaseModel {
   }
 
   // Polimorfik ilişki için bir metod
-  dokumanlanabilir() {
-    return this.$relatedQuery(this.dokumanlanabilir_type, this.dokumanlanabilir_id);
+  async dokumanlanabilir() {
+    const ModelClass = require(`./${this.dokumanlanabilir_type}`).default;
+    return await ModelClass.query().findById(this.dokumanlanabilir_id);
   }
 }

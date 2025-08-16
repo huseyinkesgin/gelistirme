@@ -9,14 +9,9 @@
                 <th v-if="selectable" scope="col" class="px-6 py-3">
                   <BaseCheckbox :model-value="allSelected" @update:model-value="toggleSelectAll" />
                 </th>
-                <th
-                  v-for="header in headers"
-                  :key="header.key"
-                  scope="col"
+                <th v-for="header in headers" :key="header.key" scope="col"
                   class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                  :class="{ 'cursor-pointer': header.sortable }"
-                  @click="header.sortable ? sortBy(header.key) : null"
-                >
+                  :class="{ 'cursor-pointer': header.sortable }" @click="header.sortable ? sortBy(header.key) : null">
                   <div class="flex items-center">
                     <span>{{ header.label }}</span>
                     <span v-if="header.sortable" class="ml-2">
@@ -44,9 +39,11 @@
               </tr>
               <tr v-for="item in sortedItems" :key="item.id" class="hover:bg-gray-50 dark:hover:bg-gray-800">
                 <td v-if="selectable" class="px-6 py-4 whitespace-nowrap">
-                  <BaseCheckbox :model-value="selectedItems.includes(item.id)" @update:model-value="toggleItem(item.id)" />
+                  <BaseCheckbox :model-value="selectedItems.includes(item.id)"
+                    @update:model-value="toggleItem(item.id)" />
                 </td>
-                <td v-for="header in headers" :key="header.key" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                <td v-for="header in headers" :key="header.key"
+                  class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                   <slot :name="`cell-${header.key}`" :item="item" :value="get(item, header.key)">
                     {{ get(item, header.key) }}
                   </slot>
